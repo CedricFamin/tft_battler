@@ -1,0 +1,4 @@
+riotwatcher
+boto3
+botocore
+algoliasearch
