@@ -1,11 +1,13 @@
 from riotwatcher import TftWatcher
-
 import boto3
 import csv
 from datetime import datetime
 from io import StringIO
 import os
-
+from datetime import timedelta
+from datetime import date
+from datetime import datetime
+from botocore.config import Config
 from algoliasearch.search_client import SearchClient
 
 
@@ -65,11 +67,6 @@ def feed_dim_challengers(event = None, context = None):
     
 
     return None
-
-from datetime import timedelta
-from datetime import date
-from datetime import datetime
-from botocore.config import Config
 
 def get_all_challengers_puuid():
 
