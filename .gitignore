@@ -1,0 +1,6 @@
+tmp/
+.venv
+.vscode
+lambda_layer
+terraform/.terraform*
+terraform/terraform.*
