@@ -55,10 +55,16 @@ resource "aws_s3_bucket" "tft_battler" {
   skip_final_snapshot  = true
 }*/
 
-data "archive_file" "tft_battler_lambda_function" {
+data "archive_file" "tft_battler_get_challenger_function" {
   type        = "zip"
-  source_file = "../main.py"
-  output_path = "../tmp/lambda_function.zip"
+  source_file = "../get_data/get_challengers.py"
+  output_path = "../tmp/tft_battler_get_challenger_function.zip"
+}
+
+data "archive_file" "tft_battler_get_matches_function" {
+  type        = "zip"
+  source_file = "../get_data/get_matches.py"
+  output_path = "../tmp/tft_battler_get_matches_function.zip"
 }
 
 resource "aws_iam_role" "tft_battler_lambda_role" {
@@ -133,8 +139,8 @@ resource "aws_lambda_function" "TFT_Battler_Function_Get_Challengers" {
   function_name    = "TFT_Battler_Get_Challengers"
   handler          = "main.feed_dim_challengers"
   role             = aws_iam_role.tft_battler_lambda_role.arn
-  filename         = data.archive_file.tft_battler_lambda_function.output_path
-  source_code_hash = data.archive_file.tft_battler_lambda_function.output_base64sha256
+  filename         = data.archive_file.tft_battler_get_challenger_function.output_path
+  source_code_hash = data.archive_file.tft_battler_get_challenger_function.output_base64sha256
   runtime          = "python3.10"
   timeout          = 600
 
@@ -159,8 +165,8 @@ resource "aws_lambda_function" "TFT_Battler_Function_Get_Matches" {
   function_name    = "TFT_Battler_Get_Placements"
   handler          = "main.feed_fact_placements"
   role             = aws_iam_role.tft_battler_lambda_role.arn
-  filename         = data.archive_file.tft_battler_lambda_function.output_path
-  source_code_hash = data.archive_file.tft_battler_lambda_function.output_base64sha256
+  filename         = data.archive_file.tft_battler_get_matches_function.output_path
+  source_code_hash = data.archive_file.tft_battler_get_matches_function.output_base64sha256
   runtime          = "python3.10"
   timeout          = 900
 
