@@ -162,7 +162,7 @@ resource "aws_lambda_function" "TFT_Battler_Function_Get_Matches" {
   filename         = data.archive_file.tft_battler_lambda_function.output_path
   source_code_hash = data.archive_file.tft_battler_lambda_function.output_base64sha256
   runtime          = "python3.10"
-  timeout          = 600
+  timeout          = 900
 
   layers = [aws_lambda_layer_version.tft_battler_lambda_layer.arn]
 
