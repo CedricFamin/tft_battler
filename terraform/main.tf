@@ -244,7 +244,7 @@ resource "aws_glue_crawler" "tft_battler_crawler_s3" {
   role          = aws_iam_role.tft_battler_glue_role.arn
 
   s3_target {
-    path = "s3://${aws_s3_bucket.tft_battler.bucket}"
+    path = "s3://${aws_s3_bucket.tft_battler.bucket}/db"
   }
 }
 
@@ -256,7 +256,7 @@ resource "aws_athena_named_query" "tft_battler_athena_query" {
   name      = "TFT_Battler_GetAllChallergers_PUUID"
   workgroup = aws_athena_workgroup.tft_battler.id
   database  = aws_glue_catalog_database.tft_battler_catalog.name
-  query     = "SELECT DISTINCT puuid FROM tft_battler;"
+  query     = "SELECT DISTINCT puuid FROM summoners;"
 }
 
 resource "algolia_index" "tft_battler" {

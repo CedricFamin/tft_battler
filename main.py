@@ -60,7 +60,7 @@ def feed_dim_challengers(event = None, context = None):
 
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(AWS_S3_BUCKET)
-    file_key = 'dim/summoners/all_summoners_' + datetime.now().strftime('%Y%m%d') + '.csv'
+    file_key = 'db/summoners/all_summoners_' + datetime.now().strftime('%Y%m%d') + '.csv'
     csv_file.seek(0)
     bucket.put_object(Body=csv_file.read(), Key=file_key)
 
@@ -110,7 +110,7 @@ def feed_fact_placements(event = None, context = None):
 
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(AWS_S3_BUCKET)
-    file_key = f"fact/match_placement/year={start_date.year}/month={start_date.month:02d}/day={start_date.day:02d}/" + start_date.strftime('%Y%m%d') + '.csv'
+    file_key = f"db/match_placement/year={start_date.year}/month={start_date.month:02d}/day={start_date.day:02d}/" + start_date.strftime('%Y%m%d') + '.csv'
     csv_file.seek(0)
     bucket.put_object(Body=csv_file.read(), Key=file_key)
     print("end")
