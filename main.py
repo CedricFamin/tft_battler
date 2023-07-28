@@ -10,12 +10,12 @@ from datetime import datetime
 from botocore.config import Config
 from algoliasearch.search_client import SearchClient
 
-
 RIOT_REGION = 'euw1'
 RIOT_API_KEY = os.environ['RIOT_API_KEY']
 ALGOLIA_APPID = os.environ['ALGOLIA_APPID']
 ALGOLIA_SECRET_KEY = os.environ['ALGOLIA_SECRET_KEY']
 AWS_S3_BUCKET = os.environ['AWS_S3_BUCKET']
+AWS_ATHENA_REGION = os.environ['AWS_ATHENA_REGION']
 
 def order_fields(d, fields):
     return [d.get(field, '') for field in fields]
@@ -68,7 +68,7 @@ def feed_dim_challengers(event = None, context = None):
 
 def get_all_challengers_puuid():
 
-    client = boto3.client('athena', config=Config(region_name='eu-west-3'))
+    client = boto3.client('athena', config=Config(region_name=AWS_ATHENA_REGION))
 
     executions = client.list_query_executions(WorkGroup='TFT_Battler')
     puuids = []

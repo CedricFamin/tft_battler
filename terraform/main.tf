@@ -4,9 +4,9 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.16"
     }
-    
+
     algolia = {
-      source = "k-yomo/algolia"
+      source  = "k-yomo/algolia"
       version = ">= 0.1.0, < 1.0.0"
     }
   }
@@ -18,13 +18,14 @@ variable "ALGOLIA_APPID" { type = string }
 variable "ALGOLIA_SECRET_KEY" { type = string }
 variable "ALGOLIA_ADMIN_API_KEY" { type = string }
 variable "RIOT_API_KEY" { type = string }
+variable "AWS_REGION" { default = "eu-west-3" }
 
 provider "aws" {
-  region = "eu-west-3"
+  region = var.AWS_REGION
 }
 
 provider "algolia" {
-  app_id = var.ALGOLIA_APPID
+  app_id  = var.ALGOLIA_APPID
   api_key = var.ALGOLIA_ADMIN_API_KEY
 }
 
@@ -89,8 +90,21 @@ resource "aws_iam_policy" "lambda_policy" {
     "Statement" : [
       {
         "Effect" : "Allow",
-        "Action" : "s3:PutObject",
+        "Action" : [
+            "s3:PutObject",
+            "s3:GetObject"
+        ],
         "Resource" : "arn:aws:s3:::tft-battler/*"
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "athena:ListQueryExecutions",
+          "athena:GetQueryResults"
+        ],
+        "Resource" : [
+          "*"
+        ]
       }
     ]
   })
@@ -131,10 +145,11 @@ resource "aws_lambda_function" "TFT_Battler_Function_Get_Challengers" {
       /*db_username = aws_db_instance.TFT_Battler_DB.username
       db_password = aws_db_instance.TFT_Battler_DB.password
       db_endpoint = aws_db_instance.TFT_Battler_DB.endpoint*/
-      AWS_S3_BUCKET = aws_s3_bucket.tft_battler.id
-      RIOT_API_KEY = var.RIOT_API_KEY
-      RIOT_REGION = "euw1'"
-      ALGOLIA_APPID = var.ALGOLIA_APPID
+      AWS_S3_BUCKET      = aws_s3_bucket.tft_battler.id
+      AWS_ATHENA_REGION  = var.AWS_REGION
+      RIOT_API_KEY       = var.RIOT_API_KEY
+      RIOT_REGION        = "euw1'"
+      ALGOLIA_APPID      = var.ALGOLIA_APPID
       ALGOLIA_SECRET_KEY = var.ALGOLIA_SECRET_KEY
     }
   }
@@ -156,10 +171,11 @@ resource "aws_lambda_function" "TFT_Battler_Function_Get_Matches" {
       /*db_username = aws_db_instance.TFT_Battler_DB.username
       db_password = aws_db_instance.TFT_Battler_DB.password
       db_endpoint = aws_db_instance.TFT_Battler_DB.endpoint*/
-      AWS_S3_BUCKET = aws_s3_bucket.tft_battler.id
-      RIOT_API_KEY = var.RIOT_API_KEY
-      RIOT_REGION = "euw1'"
-      ALGOLIA_APPID = var.ALGOLIA_APPID
+      AWS_S3_BUCKET      = aws_s3_bucket.tft_battler.id
+      AWS_ATHENA_REGION  = var.AWS_REGION
+      RIOT_API_KEY       = var.RIOT_API_KEY
+      RIOT_REGION        = "euw1'"
+      ALGOLIA_APPID      = var.ALGOLIA_APPID
       ALGOLIA_SECRET_KEY = var.ALGOLIA_SECRET_KEY
     }
   }
@@ -239,7 +255,7 @@ resource "aws_athena_workgroup" "tft_battler" {
 resource "aws_athena_named_query" "tft_battler_athena_query" {
   name      = "TFT_Battler_GetAllChallergers_PUUID"
   workgroup = aws_athena_workgroup.tft_battler.id
-  database  = "${aws_glue_catalog_database.tft_battler_catalog.name}"
+  database  = aws_glue_catalog_database.tft_battler_catalog.name
   query     = "SELECT DISTINCT puuid FROM tft_battler;"
 }
 
@@ -251,7 +267,7 @@ resource "algolia_index" "tft_battler" {
       "name"
     ]
     attributes_to_retrieve = [
-        "name"
+      "name"
       , "id"
       , "puuid"
       , "accountid"
