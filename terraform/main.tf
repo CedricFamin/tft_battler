@@ -91,8 +91,8 @@ resource "aws_iam_policy" "lambda_policy" {
       {
         "Effect" : "Allow",
         "Action" : [
-            "s3:PutObject",
-            "s3:GetObject"
+          "s3:PutObject",
+          "s3:GetObject"
         ],
         "Resource" : "arn:aws:s3:::tft-battler/*"
       },
@@ -258,6 +258,37 @@ resource "aws_athena_named_query" "tft_battler_athena_query" {
   database  = aws_glue_catalog_database.tft_battler_catalog.name
   query     = "SELECT DISTINCT puuid FROM summoners;"
 }
+
+resource "aws_athena_named_query" "tft_battler_check_battle" {
+  name      = "TFT_Battler_CheckChallengerBattle"
+  workgroup = aws_athena_workgroup.tft_battler.id
+  database  = aws_glue_catalog_database.tft_battler_catalog.name
+  query     = <<EOT
+                SELECT
+                    match.matchid
+                    , summoners_1.name player_1
+                    , summoners_2.name player_2
+                    , match.placement_player_1
+                    , match.placement_player_2
+                FROM (
+                    SELECT
+                        "matchid"
+                        , COUNT(*) nb_participant
+                        , MAX(CASE puuid WHEN  puuid_p1 THEN placement ELSE -1 END) placement_player_1
+                        , MAX(CASE puuid WHEN  puuid_p2 THEN placement ELSE -1 END) placement_player_2
+                        , MAX(puuid_p1) puuid_p1
+                        , MAX(puuid_p2) puuid_p2
+                    FROM (SELECT *, ? puuid_p1 , ? puuid_p2 FROM "match_placement")
+                    WHERE (puuid = puuid_p1 OR puuid = puuid_p2)
+                        AND (year = ? and month = ? AND day = ?)
+                    GROUP BY matchid
+                    HAVING COUNT(*) = 2) "match"
+                LEFT JOIN  (SELECT puuid, MAX(name) name FROM summoners GROUP BY puuid) summoners_1 ON summoners_1.puuid = match.puuid_p1
+                LEFT JOIN  (SELECT puuid, MAX(name) name FROM summoners GROUP BY puuid) summoners_2 ON summoners_2.puuid = match.puuid_p2
+                EOT
+}
+
+
 
 resource "algolia_index" "tft_battler" {
   name = "tft_battler"
