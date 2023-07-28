@@ -15,7 +15,7 @@ RIOT_REGION = 'euw1'
 RIOT_API_KEY = os.environ['RIOT_API_KEY']
 ALGOLIA_APPID = os.environ['ALGOLIA_APPID']
 ALGOLIA_SECRET_KEY = os.environ['ALGOLIA_SECRET_KEY']
-AWS_S3_BUCKET = os.environ['S3_BUCKET']
+AWS_S3_BUCKET = os.environ['AWS_S3_BUCKET']
 
 def order_fields(d, fields):
     return [d.get(field, '') for field in fields]
@@ -63,8 +63,6 @@ def feed_dim_challengers(event = None, context = None):
     file_key = 'dim/summoners/all_summoners_' + datetime.now().strftime('%Y%m%d') + '.csv'
     csv_file.seek(0)
     bucket.put_object(Body=csv_file.read(), Key=file_key)
-
-    
 
     return None
 
