@@ -8,12 +8,9 @@ from datetime import timedelta
 from datetime import date
 from datetime import datetime
 from botocore.config import Config
-from algoliasearch.search_client import SearchClient
 
 RIOT_REGION = 'euw1'
 RIOT_API_KEY = os.environ['RIOT_API_KEY']
-ALGOLIA_APPID = os.environ['ALGOLIA_APPID']
-ALGOLIA_SECRET_KEY = os.environ['ALGOLIA_SECRET_KEY']
 AWS_S3_BUCKET = os.environ['AWS_S3_BUCKET']
 AWS_ATHENA_REGION = os.environ['AWS_ATHENA_REGION']
 
@@ -32,9 +29,12 @@ def get_all_challengers_puuid():
     executions = client.list_query_executions(WorkGroup='TFT_Battler')
     puuids = []
     for execution in executions['QueryExecutionIds']:
-        result = client.get_query_results(QueryExecutionId=execution)
-        puuids = [row['Data'][0]['VarCharValue'] for row in result["ResultSet"]['Rows'][1:]]
-        break
+        response = client.get_query_execution(QueryExecutionId=execution)
+        if response['QueryExecution']['Status']['State'] == 'SUCCEEDED':
+            result = client.get_query_results(QueryExecutionId=execution)
+            if len(result['ResultSet']['ResultSetMetadata']['ColumnInfo']) == 1 and result['ResultSet']['ResultSetMetadata']['ColumnInfo'][0]['Name'] == 'puuid':
+                puuids = [row['Data'][0]['VarCharValue'] for row in result["ResultSet"]['Rows'][1:]]
+                break
     return puuids
 
 def feed_fact_placements(event = None, context = None):
@@ -54,7 +54,7 @@ def feed_fact_placements(event = None, context = None):
             , start_time=int(datetime.timestamp(start_date))
             , end_time=int(datetime.timestamp(end_date))
             , count=100
-            )
+        )
         all_matches_ids |= set(matches)
 
     match_results = [['matchid', 'puuid', 'placement']]
@@ -69,7 +69,7 @@ def feed_fact_placements(event = None, context = None):
 
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(AWS_S3_BUCKET)
-    file_key = f"db/match_placement/year={start_date.year}/month={start_date.month}/day={start_date.day}/" + start_date.strftime('%Y%m%d') + '.csv'
+    file_key = f"db/match_placement/year={start_date.year}/month={start_date.month}/day={start_date.day}/" + start_date.strftime('%Y%m%d') + ".csv"
     csv_file.seek(0)
     bucket.put_object(Body=csv_file.read(), Key=file_key)
     print("end")

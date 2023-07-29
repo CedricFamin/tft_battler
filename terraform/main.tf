@@ -106,7 +106,8 @@ resource "aws_iam_policy" "lambda_policy" {
         "Effect" : "Allow",
         "Action" : [
           "athena:ListQueryExecutions",
-          "athena:GetQueryResults"
+          "athena:GetQueryResults",
+          "athena:GetQueryExecution"
         ],
         "Resource" : [
           "*"
@@ -137,7 +138,7 @@ resource "aws_lambda_layer_version" "tft_battler_lambda_layer" {
 
 resource "aws_lambda_function" "TFT_Battler_Function_Get_Challengers" {
   function_name    = "TFT_Battler_Get_Challengers"
-  handler          = "main.feed_dim_challengers"
+  handler          = "get_challengers.feed_dim_challengers"
   role             = aws_iam_role.tft_battler_lambda_role.arn
   filename         = data.archive_file.tft_battler_get_challenger_function.output_path
   source_code_hash = data.archive_file.tft_battler_get_challenger_function.output_base64sha256
@@ -163,7 +164,7 @@ resource "aws_lambda_function" "TFT_Battler_Function_Get_Challengers" {
 
 resource "aws_lambda_function" "TFT_Battler_Function_Get_Matches" {
   function_name    = "TFT_Battler_Get_Placements"
-  handler          = "main.feed_fact_placements"
+  handler          = "get_matches.feed_fact_placements"
   role             = aws_iam_role.tft_battler_lambda_role.arn
   filename         = data.archive_file.tft_battler_get_matches_function.output_path
   source_code_hash = data.archive_file.tft_battler_get_matches_function.output_base64sha256
